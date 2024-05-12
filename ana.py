@@ -2,36 +2,30 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt5.QtCore import pyqtSignal
 from ana_ui import Ui_MainWindow
 from PyQt5.QtGui import QIntValidator
-from etkinlik import Bilet
+from etkinlik import Etkinlik, Katilimci
 from PyQt5 import QtGui
 from etkinlikliste import EtkinlikSayfa
 from iptal import BiletIptalSayfa
 from veritabani import Veritabani
 
 class AnaSayfa(QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, uye) -> None:
         super().__init__()
+        self.uye = uye
         self.anasayfa = Ui_MainWindow()
         self.anasayfa.setupUi(self)
         self.index = 0
         self.anasayfa.sonrakiButon.clicked.connect(self.sonraki)
         self.anasayfa.oncekiButon.clicked.connect(self.onceki)
-        Veritabani.query('SELECT * FROM etkinlikler')
-        self.etkinlikler = Veritabani.fetchall()
+        self.liste_guncelle()
+        self.etkinlikguncelle()
         #self.anasayfa.biletButon.clicked.connect(self.oduncal)
         etkinliksayfa = EtkinlikSayfa()
-        self.anasayfa.etkinlikListe.triggered.connect(lambda: etkinliksayfa.goster(self.etkinlikler))
+        self.anasayfa.etkinlikListe.triggered.connect(lambda: etkinliksayfa.goster())
         self.anasayfa.biletButon.clicked.connect(self.biletal)
-        iptalsayfa = BiletIptalSayfa()
-        self.anasayfa.biletIptal.triggered.connect(lambda: iptalsayfa.goster(self.etkinlikler, self.uye))
-        iptalsayfa.bilet_iptal_sinyal.connect(self.biletiptal)
-
-
-        
-    def goster(self, uye):
-        self.uye = uye
-        self.show()
-        self.etkinlikguncelle()
+        iptalsayfa = BiletIptalSayfa(uye)
+        self.anasayfa.biletIptal.triggered.connect(lambda: iptalsayfa.goster())
+        iptalsayfa.bilet_iptal_sinyal.connect(self.herseyi_guncelle)
 
     def sonraki(self):
         self.index += 1
@@ -47,44 +41,52 @@ class AnaSayfa(QMainWindow):
 
     def etkinlikguncelle(self):
         etkinlik = self.etkinlikler[self.index]
-        self.anasayfa.foto.setPixmap(QtGui.QPixmap("Fotograflar/"+etkinlik[3]))
-        self.anasayfa.aciklamaLabel.setText(etkinlik[4])
-        self.anasayfa.etkinlikLabel.setText(etkinlik[1])
-        self.anasayfa.tarihLabel.setText(etkinlik[7])
-        self.anasayfa.saatLabel.setText(etkinlik[8])
-        self.anasayfa.konumLabel.setText(etkinlik[9])
-        self.anasayfa.turLabel.setText(etkinlik[2])
+        self.anasayfa.foto.setPixmap(QtGui.QPixmap("Fotograflar/"+etkinlik.fotograf))
+        self.anasayfa.aciklamaLabel.setText(etkinlik.aciklama)
+        self.anasayfa.etkinlikLabel.setText(etkinlik.ad)
+        self.anasayfa.tarihLabel.setText(etkinlik.tarih)
+        self.anasayfa.saatLabel.setText(etkinlik.saat)
+        self.anasayfa.konumLabel.setText(etkinlik.konum)
+        self.anasayfa.turLabel.setText(etkinlik.tur)
+
         katilimcisayisi = 0
-        if (len(etkinlik[5]) > 0):
-            katilimcisayisi = len(etkinlik[5].split(','))
-        kontenjan = f"{katilimcisayisi}/{etkinlik[6]}"
+        if (len(etkinlik.katilimcilar) > 0):
+            katilimcisayisi = len(etkinlik.katilimcilar.split(','))
+            
+        kontenjan = f"{katilimcisayisi}/{etkinlik.kontenjan}"
         self.anasayfa.kontenjanLabel.setText(kontenjan)
 
     def biletal(self):
         etkinlik = self.etkinlikler[self.index]
-        print(etkinlik[5].split(','))
-        print(self.uye[0])
         katilimcisayisi = ''
-        if (len(etkinlik[5]) > 0):
-            katilimcisayisi = etkinlik[5].split(',')
-        if len(katilimcisayisi) == etkinlik[6]:
-            QMessageBox.warning(self, "Etkinlik", "Seçtiğiniz etkinlğin Kontenjanı Doludur.",QMessageBox.Ok)
+        katilimcilar = etkinlik.katilimcilar
+        if len(katilimcilar) > 0:
+            katilimcisayisi = katilimcilar.split(',')
+
+        if len(katilimcisayisi) == etkinlik.kontenjan:
+            QMessageBox.warning(self, "Etkinlik", "Seçtiğiniz etkinlğin kontenjanı doludur.",QMessageBox.Ok)
             return
-        if f'{self.uye[0]}' in etkinlik[5].split(','):
+        
+        if str(self.uye.id) in katilimcilar.split(','):
             QMessageBox.warning(self, "Etkinlik", "Bu etkinliğe zaten katılmışsınız.",QMessageBox.Ok)
             return
 
-        yanit = QMessageBox.warning(self, "etkinlik", "Bu etkinliğe katılım işlemini onaylıyor musunuz?", QMessageBox.Yes, QMessageBox.No)
+        yanit = QMessageBox.warning(self, "Etkinlik", "Bu etkinliğe katılım işlemini onaylıyor musunuz?", QMessageBox.Yes, QMessageBox.No)
         if yanit == QMessageBox.No:
             return
-        Bilet.bilet_al(self.index, self.uye[0])
-        Veritabani.query('SELECT * FROM etkinlikler')
-        self.etkinlikler = Veritabani.fetchall()
-        self.etkinlikguncelle()
-        QMessageBox.information(self, "etkinlik", "Etkinliğe Katıldınız", QMessageBox.Ok)
+        
+        etkinlik.bilet_al(self.uye.id)
+        self.herseyi_guncelle()
+        QMessageBox.information(self, "Etkinlik", "Etkinliğe Katıldınız", QMessageBox.Ok)
 
-    def biletiptal(self, index):
-        Bilet.bilet_iptal(index, self.uye[0])
-        Veritabani.query('SELECT * FROM etkinlikler')
-        self.etkinlikler = Veritabani.fetchall()
+    def herseyi_guncelle(self):
+        self.liste_guncelle()
         self.etkinlikguncelle()
+
+    def liste_guncelle(self):
+        Veritabani.query('SELECT * FROM etkinlikler')
+        etkinliklersql = Veritabani.fetchall()
+        etkinlikler = []
+        for etkinlik in etkinliklersql:
+            etkinlikler.append(Etkinlik(*etkinlik))
+        self.etkinlikler = etkinlikler

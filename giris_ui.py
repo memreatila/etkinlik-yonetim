@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'giriş.ui'
+# Form implementation generated from reading ui file 'giris.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.10
 #
@@ -14,11 +14,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(212, 285)
+        MainWindow.resize(250, 377)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 10, 160, 182))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 10, 191, 251))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -65,6 +65,8 @@ class Ui_MainWindow(object):
         self.sifreLine.setFont(font)
         self.sifreLine.setObjectName("sifreLine")
         self.verticalLayout.addWidget(self.sifreLine)
+        spacerItem = QtWidgets.QSpacerItem(20, 30, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout.addItem(spacerItem)
         self.girisButon = QtWidgets.QPushButton(self.verticalLayoutWidget)
         font = QtGui.QFont()
         font.setPointSize(14)
@@ -72,7 +74,7 @@ class Ui_MainWindow(object):
         self.girisButon.setObjectName("girisButon")
         self.verticalLayout.addWidget(self.girisButon)
         self.kayitButon = QtWidgets.QPushButton(self.centralwidget)
-        self.kayitButon.setGeometry(QtCore.QRect(70, 220, 75, 23))
+        self.kayitButon.setGeometry(QtCore.QRect(90, 300, 75, 23))
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(12)
@@ -80,12 +82,13 @@ class Ui_MainWindow(object):
         self.kayitButon.setObjectName("kayitButon")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 212, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 250, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+        self.applyStyles()
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -99,12 +102,41 @@ class Ui_MainWindow(object):
         self.girisButon.setText(_translate("MainWindow", "Giriş"))
         self.kayitButon.setText(_translate("MainWindow", "Kayıt Ol"))
 
+    def applyStyles(self):
+        # Ana pencereye stil uygula
+        style = """
+            background-color: #f0f0f0;
+            font-family: Arial;
+        """
+        self.centralwidget.setStyleSheet(style)
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+        # Label stili
+        label_style = """
+            font-family: Arial;
+            font-size: 16px;
+            color: #333333;
+        """
+        self.label_3.setStyleSheet(label_style)
+
+        # Buton stili
+        button_style = """
+            QPushButton {
+                background-color: #4CAF50; /* Yeşil */
+                border: none;
+                color: white;
+                padding: 10px 24px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+
+            QPushButton:hover {
+                background-color: #45a049; /* Koyu yeşil */
+            }
+
+            QPushButton:pressed {
+                background-color: #3e8e41; /* Daha koyu yeşil */
+            }
+            """
+        self.girisButon.setStyleSheet(button_style)

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QMessageBox
 from etkinlik_ui import Ui_Form
 from PyQt5 import QtCore
 from veritabani import Veritabani
+from etkinlik import Etkinlik, Katilimci
 
 class EtkinlikSayfa(QWidget):
     def __init__(self) -> None:
@@ -10,14 +11,19 @@ class EtkinlikSayfa(QWidget):
         self.etkinlikform.setupUi(self)
         self.etkinlikform.etkinlikBox.currentIndexChanged.connect(self.katilimci_liste_guncelle)
 
-    def goster(self, etkinlikler):
+    def goster(self):
+        Veritabani.query('SELECT * FROM etkinlikler')
+        etkinliklersql = Veritabani.fetchall()
+        etkinlikler = []
+        for etkinlik in etkinliklersql:
+            etkinlikler.append(Etkinlik(*etkinlik))
         self.etkinlikler = etkinlikler
+
         tablo = self.etkinlikform.katilimciTable
         tablo.setRowCount(0)
         self.etkinlikform.etkinlikBox.clear()
         for etkinlik in etkinlikler:
-            self.etkinlikform.etkinlikBox.addItem(etkinlik[1])
-
+            self.etkinlikform.etkinlikBox.addItem(etkinlik.ad)
 
         self.show()
         tablo.setColumnWidth(0, 120)
@@ -27,27 +33,29 @@ class EtkinlikSayfa(QWidget):
     def katilimci_liste_guncelle(self):
         etkinlik = self.etkinlikler[self.etkinlikform.etkinlikBox.currentIndex()]
         tablo = self.etkinlikform.katilimciTable
-            
-        if len(etkinlik[5]) < 1:
+        katilimcilar = etkinlik.katilimcilar
+
+        if len(katilimcilar) < 1:
             tablo.setRowCount(0)
             return
-        katilimcisayisi = len(etkinlik[5].split(','))
+        katilimcisayisi = len(katilimcilar.split(','))
         tablo.setRowCount(katilimcisayisi)
         satir = 0
 
 
-        for katilimciid in etkinlik[5].split(','):
-            Veritabani.query('SELECT ad, soyad, telefon FROM kullanicilar WHERE id = ?', (katilimciid,))
-            katilimci = Veritabani.fetchone()
-            ad = QTableWidgetItem(katilimci[0])
-            soyad = QTableWidgetItem(katilimci[1])
-            telefon = QTableWidgetItem(katilimci[2])
+        for katilimciid in katilimcilar.split(','):
+            Veritabani.query('SELECT * FROM kullanicilar WHERE id = ?', (katilimciid,))
+            katilimcisql = Veritabani.fetchone()
+            katilimci = Katilimci(*katilimcisql)
+
+            ad = QTableWidgetItem(katilimci.ad)
+            soyad = QTableWidgetItem(katilimci.soyad)
+            telefon = QTableWidgetItem(katilimci.telefon)
 
             #Hepsinin yazısını ortala
             ad.setTextAlignment(QtCore.Qt.AlignCenter)
             soyad.setTextAlignment(QtCore.Qt.AlignCenter)
             telefon.setTextAlignment(QtCore.Qt.AlignCenter)
-
 
             tablo = self.etkinlikform.katilimciTable
             tablo.setItem(satir, 0, ad)

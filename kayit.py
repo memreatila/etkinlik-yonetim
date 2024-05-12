@@ -1,10 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QMessageBox
-from PyQt5.QtCore import pyqtSignal
 from kayit_ui import Ui_Form
+from etkinlik import Katilimci
 
 class KayitSayfa(QWidget):
-    kayit_sinyal = pyqtSignal(list)
-
     def __init__(self) -> None:
         super().__init__()
         self.anasayfa = Ui_Form()
@@ -18,7 +16,7 @@ class KayitSayfa(QWidget):
         soyad = self.anasayfa.soyadLine.text()
         ad = self.anasayfa.adLine.text()
 
-        self.kayit_sinyal.emit([kullaniciadi, sifre, ad, soyad, telefon])
+        Katilimci.kayitol(kullaniciadi, sifre, ad, soyad, telefon)
 
         yanit = QMessageBox.information(self, "Kayıt", "Kayıt işlemi tamamlandı.",QMessageBox.Ok)
 
